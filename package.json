@@ -1,0 +1,12 @@
+{
+  "name": "jquery-tickets-plugin",
+  "private": true,
+  "version": "0.0.1",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/intspirit/jquery-tickets-plugin.git"
+  },
+  "devDependencies": {
+    "grunt": "1.0.0"
+  }
+}
