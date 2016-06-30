@@ -5,12 +5,18 @@ module.exports = function (grunt) {
         pkg: grunt.file.readJSON('package.json'),
 
         concat: {
+            options: {
+                separator: '\n'
+            },
             dist: {
                 src: [
-                    'src/intro.js',
-                    'src/constants.js',
-
-                    'src/outro.js'
+                    'src/js/intro.js',
+                    'src/js/constants.js',
+                    'src/js/utils.js',
+                    'src/js/category.js',
+                    'src/js/tools.js',
+                    'src/js/plugin.js',
+                    'src/js/outro.js'
                 ],
                 dest: 'dist/jquery-tickets-plugin.js'
             }
@@ -19,5 +25,5 @@ module.exports = function (grunt) {
 
     grunt.loadNpmTasks('grunt-contrib-concat');
 
-    grunt.registerTask('default', ['concat:dist']);
+    grunt.registerTask('default', ['concat']);
 };
