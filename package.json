@@ -7,6 +7,7 @@
     "url": "https://github.com/intspirit/jquery-tickets-plugin.git"
   },
   "devDependencies": {
-    "grunt": "1.0.0"
+    "grunt": "1.0.0",
+    "grunt-contrib-concat": "1.0.1"
   }
 }
