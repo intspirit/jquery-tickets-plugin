@@ -217,7 +217,8 @@ Hall.prototype.addCategoryToTable = function (category) {
                                             $createElement('td').css({'background-color': category.getColor()}),
                                             $createElement('td').append($createButton('edit')
                                                 .on('click', category, $.proxy(this.onEditCategoryBtnClick, this))),
-                                            $createElement('td').append($createButton('remove'))
+                                            $createElement('td').append($createButton('remove')
+                                                .on('click', category, $.proxy(this.onRemoveCategoryBtnClick, this)))
                                         );
     this.jCategoriesTable.append(jCategory);
 }
@@ -283,6 +284,12 @@ Hall.prototype.onCategoryBtnClick = function (e) {
 Hall.prototype.onEditCategoryBtnClick = function (e) {
     e.stopPropagation();
     this.showCategoriesModal(e.data);
+}
+
+Hall.prototype.onRemoveCategoryBtnClick = function (e) {
+    var name = e.data.name;
+    this.removeCategory(name);
+    this.removeCategoryFromTable(name);
 }
 
 Hall.prototype.getCategories = function () { return this.__categories; };
