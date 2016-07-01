@@ -9,3 +9,6 @@ var seatTypes = {
     square: 1,
     round: 2
 };
+
+// different
+var CLASS_PREFIX = 'tickets-plugin-';

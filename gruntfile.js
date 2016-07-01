@@ -14,7 +14,9 @@ module.exports = function (grunt) {
                     'src/js/constants.js',
                     'src/js/utils.js',
                     'src/js/category.js',
-                    'src/js/tools.js',
+                    'src/js/seat.js',
+                    'src/js/row.js',
+                    'src/js/hall.js',
                     'src/js/plugin.js',
                     'src/js/outro.js'
                 ],
