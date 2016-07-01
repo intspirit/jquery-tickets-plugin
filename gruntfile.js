@@ -22,10 +22,48 @@ module.exports = function (grunt) {
                 ],
                 dest: 'dist/jquery-tickets-plugin.js'
             }
+        },
+
+        sass: {
+            dist: {
+                options: {
+                    sourcemap: 'none'
+                },
+                files: {
+                    'dist/jquery-tickets-plugin.css': 'src/scss/main.scss'
+                }
+            }
+        },
+
+        browserSync: {
+            options: {
+                server: {
+                    baseDir: './'
+                },
+                port: 3445,
+                watchTask: true
+            },
+            bsFiles: {
+                src: 'dist/*.*'
+            }
+        },
+
+        watch: {
+            sass: {
+                files: 'src/scss/*.scss',
+                tasks: ['sass']
+            },
+            js: {
+                files: 'src/js/*.js',
+                tasks: ['concat']
+            }
         }
     });
 
     grunt.loadNpmTasks('grunt-contrib-concat');
+    grunt.loadNpmTasks('grunt-contrib-sass');
+    grunt.loadNpmTasks('grunt-browser-sync');
+    grunt.loadNpmTasks('grunt-contrib-watch');
 
-    grunt.registerTask('default', ['concat']);
+    grunt.registerTask('default', ['browserSync', 'watch']);
 };
