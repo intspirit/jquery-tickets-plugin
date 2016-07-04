@@ -17,6 +17,7 @@ module.exports = function (grunt) {
                     'src/js/seat.js',
                     'src/js/row.js',
                     'src/js/hall.js',
+                    'src/js/storage.js',
                     'src/js/plugin.js',
                     'src/js/outro.js'
                 ],

@@ -23,6 +23,10 @@ var seatTypes = {
 
 // different
 var CLASS_PREFIX = 'tickets-plugin-';
+
+var storageKeys = {
+    'Categories': Category
+};
 var $prefixClasses = function (classNames) {
     var names = classNames.split(' ');
     $.each(names, function (index, name) { name = CLASS_PREFIX + name; });
@@ -190,6 +194,7 @@ function Hall (container) {
         throw new Error('Container is not defined');
     this.jContainer = jContainer;
     this.__categories = {};
+    this.__rows = {};
 
     this.createToolsPanel();
     this.createCategoriesTable();
@@ -197,16 +202,17 @@ function Hall (container) {
 
 Hall.prototype.createToolsPanel = function () {
     this.jCategoryButton = $createButton('Create Category').on('click', $.proxy(this.onCategoryBtnClick, this));
+    this.jRowsButton = $createButton('Add Rows').on('click', $.proxy(this.onRowsButtonClick, this));
     this.jToolsPanel = $createElement('div').addClass($prefixClasses('tools'));
     this.jToolsPanel.append(this.jCategoryButton);
     this.jContainer.append(this.jToolsPanel);
-}
+};
 
 Hall.prototype.createCategoriesTable = function () {
     this.jCategoriesTable = $createElement('table').addClass($prefixClasses('table categories'));
     this.jCategoriesTable.append($createElement('tbody'));
     this.jContainer.append(this.jCategoriesTable);
-}
+};
 
 Hall.prototype.addCategoryToTable = function (category) {
     var jCategory = $createElement('tr').attr('id', category.name)
@@ -221,7 +227,7 @@ Hall.prototype.addCategoryToTable = function (category) {
                                                 .on('click', category, $.proxy(this.onRemoveCategoryBtnClick, this)))
                                         );
     this.jCategoriesTable.append(jCategory);
-}
+};
 
 Hall.prototype.updateCategoryInTable = function (oldName, category) {
     var jCategory = this.jCategoriesTable.find('#' + oldName);
@@ -233,9 +239,9 @@ Hall.prototype.updateCategoryInTable = function (oldName, category) {
         });
         jCategory.attr('id', category.name);
     }
-}
+};
 
-Hall.prototype.removeCategoryFromTable = function (name) { this.jCategoriesTable.find('#' + name).remove(); }
+Hall.prototype.removeCategoryFromTable = function (name) { this.jCategoriesTable.find('#' + name).remove(); };
 
 Hall.prototype.showCategoriesModal = function (currentCategory) {
     var jCategoryName = $createInputFormGroup('category_name', 'Name', undefined, currentCategory ? currentCategory.name : undefined);
@@ -274,23 +280,44 @@ Hall.prototype.showCategoriesModal = function (currentCategory) {
     };
 
     $showModal('Create Category', jCategoryForm, this.jContainer, onSave);
-}
+};
+
+Hall.prototype.showRowsModal = function () {
+    var jRowsNumber = $createInputFormGroup('rows_number', 'Number of rows');
+    var jSeatsNumber = $createInputFormGroup('seats_number', 'Number of seats');
+
+    var jRowsForm = $createElement('form')
+                        .addClass('form')
+                        .append(jRowsNumber, jSeatsNumber);
+
+    var self = this;
+    var onSave = function () {
+        var numberOfRows = jRowsNumber.find('input').val();
+        var numberOfSeats = jSeatsNumber.find('input').val();
+    }
+
+    $showModal('Add Rows', jRowsForm, this.jContainer, onSave);
+};
 
 Hall.prototype.onCategoryBtnClick = function (e) {
     e.stopPropagation();
     this.showCategoriesModal();
-}
+};
 
 Hall.prototype.onEditCategoryBtnClick = function (e) {
     e.stopPropagation();
     this.showCategoriesModal(e.data);
-}
+};
 
 Hall.prototype.onRemoveCategoryBtnClick = function (e) {
     var name = e.data.name;
     this.removeCategory(name);
     this.removeCategoryFromTable(name);
-}
+};
+
+Hall.prototype.onRowsButtonClick = function () {
+
+};
 
 Hall.prototype.getCategories = function () { return this.__categories; };
 
@@ -312,7 +339,119 @@ Hall.prototype.removeCategory = function (name) {
         delete(this.__categories[name]);
 };
 
+Hall.prototype.addRow = function (row) {
+        if (!row.label)
+        throw new Error('Cannot add row with empty label.');
+    else if (this.__rows[row.label])
+        throw new Error('Row with a given label already exists.');
+    else
+        this.__rows[row.label] = row;
+};
 
+Hall.prototype.removeRow = function (label) {
+    if (!label)
+        throw new Error('Cannot remove row with empty label.');
+    else if (!this.__rows[label])
+        throw new Error('Row with a given label does not exist');
+    else
+        delete(this.__rows[label]);
+};
+
+
+
+function Storage (shouldPersist) {
+    if (shouldPersist)
+        this.__storage = localStorage;
+    else
+        this.__storage = sessionStorage;
+}
+
+Storage.prototype.getItem = function (tableName, id, Constructor) {
+    return Constructor.fromJson(this.__storage.getItem(tableName + id));
+};
+
+Storage.prototype.getItems = function (tableName, cacheTableName, Constructor) {
+    var items = [];
+    var cache = this.__storage.getItem(cacheTableName);
+    if (cache) {
+        cache = cache.split(' ');
+        var len = cache.length, index = 0, item;
+        for (; index < len; index++) {
+            item = Constructor.fromJson(this.__storage.getItem(tableName + cache[index]));
+            item && items.push(item);
+        }
+    }
+    return items;
+};
+
+Storage.prototype.addOrUpdateItem = function (tableName, cacheTableName, id, item, shouldUpdate) {
+    var itemExists = !!this.__storage.getItem(tableName + id);
+    shouldUpdate = !!shouldUpdate;
+    if (itemExists == shouldUpdate) {
+        this.__storage.setItem(tableName + id, item.toJson());
+        this.updateCache(cacheTableName, id);
+    } else {
+        var errMsg = shouldUpdate ? 'Cannot update item with id - ' + id + '. It doesnt exist.'
+                                  : 'Cannot duplicate item with id - ' + id;
+        throw new Error(errMsg);
+    }
+};
+
+Storage.prototype.removeItem = function (tableName, cacheTableName, id) {
+    this.__storage.removeItem(tableName + id);
+    this.updateCache(cacheTableName, id, true);
+};
+
+Storage.prototype.updateCache = function (tableName, id, shouldRemove) {
+    id = id.toString();
+    var cache = this.__storage.getItem(tableName),
+        condition = false;
+    if (cache) {
+        if (cache.indexOf(id) > -1) {
+            condition = shouldRemove;
+            cache = cache.replace(id, '');
+        } else {
+            condition = !shouldRemove;
+            cache = cache + ' ' + id;
+        }
+    } else {
+        condition = !shouldRemove;
+        cache = id;
+    }
+    condition && this.__storage.setItem(tableName, cache);
+};
+
+(function (storageConstructor, keys) {
+    var tableName, cacheTableName, cacheTableNames = [], constructor, constructorName;
+    for (var key in keys) {
+        tableName = '__' + key + '__';
+        cacheTableName = '__' + key + '_ids__';
+        cacheTableNames.push(cacheTableName);
+        constructor = keys[key];
+        constructorName = /^function\s+([\w\$]+)\s*\(/.exec(constructor.toString())[1];
+
+        var getItemsWrapper = (new Function('constructor',
+            'return function () { return this.getItems("' + tableName + '", "' + cacheTableName + '", constructor); };'))
+        (constructor);
+
+        var getItemWrapper = (new Function ('constructor',
+            'return function (id) { return this.getItem("' + tableName + '", id, constructor); };'))
+        (constructor);
+
+        storageConstructor.prototype['get' + key] = function () { return getItemsWrapper.call(this); };
+
+        storageConstructor.prototype['get' + constructorName] = function (id) { return getItemWrapper.call(this, id); };
+
+        storageConstructor.prototype['add' + constructorName] = new Function('id', 'item', 'return ' +
+            'this.addOrUpdateItem("' + tableName + '","' + cacheTableName + '", id, item);' );
+
+        storageConstructor.prototype['update' + constructorName] = new Function ('id', 'item', 'return ' +
+            'this.addOrUpdateItem("' + tableName + '","' + cacheTableName + '", id, item, true);' );
+
+        storageConstructor.prototype['remove' + constructorName] = new Function ('id', 'return ' +
+            'this.removeItem("' + tableName + '","' + cacheTableName + '", id);');
+    }
+})(Storage, storageKeys);
 
 $.fn.extend({
     cinemaHall: function (options) {

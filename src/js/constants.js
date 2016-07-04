@@ -12,3 +12,7 @@ var seatTypes = {
 
 // different
 var CLASS_PREFIX = 'tickets-plugin-';
+
+var storageKeys = {
+    'Categories': Category
+};
