@@ -5,6 +5,7 @@ function Hall (container) {
         throw new Error('Container is not defined');
     this.jContainer = jContainer;
     this.__categories = {};
+    this.__rows = {};
 
     this.createToolsPanel();
     this.createCategoriesTable();
@@ -12,16 +13,17 @@ function Hall (container) {
 
 Hall.prototype.createToolsPanel = function () {
     this.jCategoryButton = $createButton('Create Category').on('click', $.proxy(this.onCategoryBtnClick, this));
+    this.jRowsButton = $createButton('Add Rows').on('click', $.proxy(this.onRowsButtonClick, this));
     this.jToolsPanel = $createElement('div').addClass($prefixClasses('tools'));
     this.jToolsPanel.append(this.jCategoryButton);
     this.jContainer.append(this.jToolsPanel);
-}
+};
 
 Hall.prototype.createCategoriesTable = function () {
     this.jCategoriesTable = $createElement('table').addClass($prefixClasses('table categories'));
     this.jCategoriesTable.append($createElement('tbody'));
     this.jContainer.append(this.jCategoriesTable);
-}
+};
 
 Hall.prototype.addCategoryToTable = function (category) {
     var jCategory = $createElement('tr').attr('id', category.name)
@@ -36,21 +38,21 @@ Hall.prototype.addCategoryToTable = function (category) {
                                                 .on('click', category, $.proxy(this.onRemoveCategoryBtnClick, this)))
                                         );
     this.jCategoriesTable.append(jCategory);
-}
+};
 
 Hall.prototype.updateCategoryInTable = function (oldName, category) {
     var jCategory = this.jCategoriesTable.find('#' + oldName);
     if (jCategory.length) {
         jCategory.children().each(function (index, element) {
-            if (index == 0) $(element).text(category.name);
-            if (index == 1) $(element).text(category.value);
-            if (index == 2) $(element).css('background-color', category.getColor());
+            if (index === 0) $(element).text(category.name);
+            if (index === 1) $(element).text(category.value);
+            if (index === 2) $(element).css('background-color', category.getColor());
         });
         jCategory.attr('id', category.name);
     }
-}
+};
 
-Hall.prototype.removeCategoryFromTable = function (name) { this.jCategoriesTable.find('#' + name).remove(); }
+Hall.prototype.removeCategoryFromTable = function (name) { this.jCategoriesTable.find('#' + name).remove(); };
 
 Hall.prototype.showCategoriesModal = function (currentCategory) {
     var jCategoryName = $createInputFormGroup('category_name', 'Name', undefined, currentCategory ? currentCategory.name : undefined);
@@ -89,23 +91,45 @@ Hall.prototype.showCategoriesModal = function (currentCategory) {
     };
 
     $showModal('Create Category', jCategoryForm, this.jContainer, onSave);
-}
+};
+
+Hall.prototype.showRowsModal = function () {
+    var jRowsNumber = $createInputFormGroup('rows_number', 'Number of rows');
+    var jSeatsNumber = $createInputFormGroup('seats_number', 'Number of seats');
+
+    var jRowsForm = $createElement('form')
+                        .addClass('form')
+                        .append(jRowsNumber, jSeatsNumber);
+
+    var self = this;
+    var onSave = function () {
+        var numberOfRows = jRowsNumber.find('input').val();
+        var numberOfSeats = jSeatsNumber.find('input').val();
+    };
+
+    $showModal('Add Rows', jRowsForm, this.jContainer, onSave);
+};
+
 
 Hall.prototype.onCategoryBtnClick = function (e) {
     e.stopPropagation();
     this.showCategoriesModal();
-}
+};
 
 Hall.prototype.onEditCategoryBtnClick = function (e) {
     e.stopPropagation();
     this.showCategoriesModal(e.data);
-}
+};
 
 Hall.prototype.onRemoveCategoryBtnClick = function (e) {
     var name = e.data.name;
     this.removeCategory(name);
     this.removeCategoryFromTable(name);
-}
+};
+
+Hall.prototype.onRowsButtonClick = function () {
+
+};
 
 Hall.prototype.getCategories = function () { return this.__categories; };
 
@@ -125,6 +149,24 @@ Hall.prototype.removeCategory = function (name) {
         throw new Error('Category with given name does not exist');
     else
         delete(this.__categories[name]);
+};
+
+Hall.prototype.addRow = function (row) {
+        if (!row.label)
+        throw new Error('Cannot add row with empty label.');
+    else if (this.__rows[row.label])
+        throw new Error('Row with a given label already exists.');
+    else
+        this.__rows[row.label] = row;
+};
+
+Hall.prototype.removeRow = function (label) {
+    if (!label)
+        throw new Error('Cannot remove row with empty label.');
+    else if (!this.__rows[label])
+        throw new Error('Row with a given label does not exist');
+    else
+        delete(this.__rows[label]);
 };
 
 

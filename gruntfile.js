@@ -4,6 +4,14 @@ module.exports = function (grunt) {
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
 
+        jshint: {
+            files: ['src/js/**/*.js'],
+            options: {
+                jshintrc: true,
+                force: true
+            }
+        },
+
         concat: {
             options: {
                 separator: '\n'
@@ -56,15 +64,16 @@ module.exports = function (grunt) {
             },
             js: {
                 files: 'src/js/*.js',
-                tasks: ['concat']
+                tasks: ['jshint','concat']
             }
         }
     });
 
     grunt.loadNpmTasks('grunt-contrib-concat');
+    grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-contrib-sass');
     grunt.loadNpmTasks('grunt-browser-sync');
     grunt.loadNpmTasks('grunt-contrib-watch');
 
-    grunt.registerTask('default', ['browserSync', 'watch']);
+    grunt.registerTask('default', ['jshint', 'browserSync', 'watch']);
 };

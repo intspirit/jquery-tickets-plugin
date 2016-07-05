@@ -1,0 +1,7 @@
+{
+    "camelcase": true,
+    "curly": false,
+    "globals": {
+        "jQuery": true
+    }
+}

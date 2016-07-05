@@ -6,12 +6,12 @@ function Seat () {
 
 Seat.prototype.setCategory = function (category) {
 
-}
+};
 
 Seat.prototype.setForm = function (form) {
 
-}
+};
 
 Seat.prototype.toJson = function () {
 
-}
+};
